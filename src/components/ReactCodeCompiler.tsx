@@ -148,6 +148,49 @@ const TEMPLATES = {
       ) : null}
     </div>
   );
+}`,
+  reactEmail: `function App() {
+  return (
+    <Html>
+      <Head />
+      <Preview>Welcome to our platform!</Preview>
+      <Tailwind>
+        <Body className="bg-gray-100 my-auto mx-auto font-sans">
+          <Container className="border border-gray-200 rounded my-8 mx-auto p-5 max-w-md bg-white">
+            <Img
+              src="https://react.email/static/icons/react.png"
+              width="50"
+              height="50"
+              alt="React Email"
+              className="mx-auto my-4"
+            />
+            <Heading className="text-2xl font-bold text-center text-gray-800">
+              Welcome to React Email
+            </Heading>
+            <Text className="text-gray-600 my-4">
+              This is a simple email template built with React Email and Tailwind CSS.
+              You can customize it to suit your needs.
+            </Text>
+            <Section className="text-center">
+              <Button
+                href="https://example.com"
+                className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              >
+                Get Started
+              </Button>
+            </Section>
+            <Text className="text-sm text-gray-500 text-center mt-8">
+              © 2023 React Email. All rights reserved.
+              <br />
+              <Link href="https://example.com/unsubscribe" className="text-blue-500 hover:underline">
+                Unsubscribe
+              </Link>
+            </Text>
+          </Container>
+        </Body>
+      </Tailwind>
+    </Html>
+  );
 }`
 };
 
@@ -175,6 +218,29 @@ const generateHTML = (reactCode: string): string => {
       <script type="text/babel">
         // React and ReactDOM are already loaded
         const { useState, useEffect, useRef, useCallback, useMemo, useContext, createContext } = React;
+        
+        // Import mock for @react-email/components
+        const ReactEmail = {};
+        
+        // Mock the components from @react-email/components
+        const {
+          Body, Button, Container, Head, Heading, Html, Img, 
+          Link, Preview, Section, Tailwind, Text
+        } = {
+          Body: ({ children, className, ...props }) => <body className={className} {...props}>{children}</body>,
+          Button: ({ children, className, href, ...props }) => <a href={href} className={className} {...props}>{children}</a>,
+          Container: ({ children, className, ...props }) => <div className={className} {...props}>{children}</div>,
+          Head: ({ children, ...props }) => <head {...props}>{children}</head>,
+          Heading: ({ children, className, ...props }) => <h1 className={className} {...props}>{children}</h1>,
+          Html: ({ children, ...props }) => <html {...props}>{children}</html>,
+          Img: ({ src, alt, width, height, className, ...props }) => 
+            <img src={src} alt={alt} width={width} height={height} className={className} {...props} />,
+          Link: ({ children, href, className, ...props }) => <a href={href} className={className} {...props}>{children}</a>,
+          Preview: ({ children, ...props }) => <div style={{ display: 'none' }} {...props}>{children}</div>,
+          Section: ({ children, className, ...props }) => <div className={className} {...props}>{children}</div>,
+          Tailwind: ({ children, ...props }) => <div {...props}>{children}</div>,
+          Text: ({ children, className, ...props }) => <p className={className} {...props}>{children}</p>
+        };
         
         try {
           ${reactCode}
@@ -324,6 +390,7 @@ const ReactCodeCompiler: React.FC = () => {
                   <TabsTrigger value="counter">Counter</TabsTrigger>
                   <TabsTrigger value="todoList">Todo List</TabsTrigger>
                   <TabsTrigger value="fetchData">Fetch Data</TabsTrigger>
+                  <TabsTrigger value="reactEmail">React Email</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
