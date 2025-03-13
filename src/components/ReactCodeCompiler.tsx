@@ -191,11 +191,168 @@ const TEMPLATES = {
       </Tailwind>
     </Html>
   );
+}`,
+  loginEmail: `// Current date for the login timestamp
+const currentDate = new Date().toLocaleString('en-US', {
+  weekday: 'long',
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: 'numeric',
+  timeZoneName: 'short',
+});
+
+function App() {
+  return (
+    <Html>
+      <Head />
+      <Preview>Successful login to your account</Preview>
+      <Tailwind>
+        <Body className="bg-gray-100 font-sans">
+          <Container className="mx-auto my-[40px] max-w-[600px] rounded-[8px] bg-white p-[20px]">
+            {/* Header with Logo */}
+            <Section className="mt-[32px] text-center">
+              <Img
+                src="https://picsum.photos/600/100"
+                alt="Company Logo"
+                width="180"
+                height="40"
+                className="mx-auto"
+              />
+            </Section>
+
+            {/* Main Content */}
+            <Section className="mt-[32px]">
+              <Heading className="text-[24px] font-bold text-gray-800">
+                Login Confirmed
+              </Heading>
+              <Text className="text-[16px] leading-[24px] text-gray-600">
+                Hey there,
+              </Text>
+              <Text className="text-[16px] leading-[24px] text-gray-600">
+                We detected a new login to your account. If this was you, no action is needed.
+              </Text>
+
+              {/* Login Details */}
+              <Section className="my-[24px] rounded-[8px] border border-gray-200 bg-gray-50 p-[16px]">
+                <Text className="m-0 text-[14px] font-medium text-gray-800">
+                  📅 Date & Time: {currentDate}
+                </Text>
+                <Text className="m-0 text-[14px] font-medium text-gray-800">
+                  📱 Device: Chrome on Windows
+                </Text>
+                <Text className="m-0 text-[14px] font-medium text-gray-800">
+                  📍 Location: Bengaluru, India
+                </Text>
+              </Section>
+
+              <Text className="text-[16px] leading-[24px] text-gray-600">
+                If you didn't log in recently, please secure your account immediately:
+              </Text>
+
+              {/* CTA Button */}
+              <Section className="my-[32px] text-center">
+                <Button
+                  className="box-border rounded-[4px] bg-blue-600 px-[20px] py-[12px] text-[16px] font-medium text-white no-underline"
+                  href="https://yoursaas.com/account/security"
+                >
+                  Secure My Account
+                </Button>
+              </Section>
+
+              <Text className="text-[16px] leading-[24px] text-gray-600">
+                Or copy and paste this URL into your browser:
+                <Link
+                  href="https://yoursaas.com/account/security"
+                  className="ml-[4px] text-blue-600 no-underline"
+                >
+                  https://yoursaas.com/account/security
+                </Link>
+              </Text>
+            </Section>
+
+            {/* Help Section */}
+            <Section className="mt-[32px] border-t border-gray-200 pt-[32px]">
+              <Text className="text-[16px] leading-[24px] text-gray-600">
+                Need help? Contact our support team at{' '}
+                <Link
+                  href="mailto:support@yoursaas.com"
+                  className="text-blue-600 no-underline"
+                >
+                  support@yoursaas.com
+                </Link>
+              </Text>
+            </Section>
+
+            {/* Footer */}
+            <Section className="mt-[32px] text-center">
+              <Text className="text-[12px] leading-[16px] text-gray-500">
+                © 2025 Your SaaS Company. All rights reserved.
+              </Text>
+              <Text className="m-0 text-[12px] leading-[16px] text-gray-500">
+                123 SaaS Street, Tech Park, Bengaluru, India
+              </Text>
+              <Text className="mt-[16px] text-[12px] leading-[16px] text-gray-500">
+                <Link
+                  href="https://yoursaas.com/preferences"
+                  className="text-gray-500 underline"
+                >
+                  Email Preferences
+                </Link>{' '}
+                •{' '}
+                <Link
+                  href="https://yoursaas.com/unsubscribe"
+                  className="text-gray-500 underline"
+                >
+                  Unsubscribe
+                </Link>
+              </Text>
+            </Section>
+          </Container>
+        </Body>
+      </Tailwind>
+    </Html>
+  );
 }`
+};
+
+// Function to detect and extract imports from the code
+const extractImports = (code: string): string => {
+  const importRegex = /import\s+.*?from\s+['"].*?['"]\s*;?/g;
+  const imports = code.match(importRegex) || [];
+  return imports.join('\n');
+};
+
+// Function to extract the actual component code without imports
+const extractComponentCode = (code: string): string => {
+  // Remove import statements from the code
+  return code.replace(/import\s+.*?from\s+['"].*?['"]\s*;?/g, '').trim();
 };
 
 // Function to generate complete HTML with React, ReactDOM, and Babel
 const generateHTML = (reactCode: string): string => {
+  // Extract imports and component code
+  const importStatements = extractImports(reactCode);
+  const componentCode = extractComponentCode(reactCode);
+  
+  // Check if the code is a full component or just a function
+  const isFullComponent = componentCode.includes('export default');
+  
+  // If it's a full component, we need to extract the function/component name
+  let appCode = componentCode;
+  if (isFullComponent) {
+    // Attempt to find the component/function name
+    const componentNameMatch = componentCode.match(/(?:function|const)\s+([A-Za-z0-9_]+)/);
+    if (componentNameMatch && componentNameMatch[1]) {
+      const componentName = componentNameMatch[1];
+      // Replace the export default line with nothing
+      appCode = componentCode.replace(/export\s+default\s+[A-Za-z0-9_]+;?/, '');
+      // Add an App function that renders the component
+      appCode = `${appCode}\n\nfunction App() { return <${componentName} />; }`;
+    }
+  }
+  
   return `
     <!DOCTYPE html>
     <html>
@@ -242,8 +399,11 @@ const generateHTML = (reactCode: string): string => {
           Text: ({ children, className, ...props }) => <p className={className} {...props}>{children}</p>
         };
         
+        // Log that the imports were processed
+        console.log("Processed imports:", ${JSON.stringify(importStatements)});
+        
         try {
-          ${reactCode}
+          ${appCode}
           
           ReactDOM.render(
             <App />,
@@ -346,6 +506,22 @@ const ReactCodeCompiler: React.FC = () => {
     }
   };
 
+  // Function to handle pasting code with imports
+  const handlePaste = (e: React.ClipboardEvent<HTMLTextAreaElement>) => {
+    const pastedText = e.clipboardData.getData('text');
+    // Check if the pasted content has import statements
+    if (pastedText.includes('import') && pastedText.includes('from')) {
+      setCode(pastedText);
+      if (autoCompile) {
+        setDisplayCode(pastedText);
+      }
+      toast({
+        title: "Code Pasted",
+        description: "Imports detected and will be handled automatically.",
+      });
+    }
+  };
+
   return (
     <div className="flex flex-col w-full max-w-7xl mx-auto px-4 py-6 gap-6">
       <div className="flex justify-between items-center">
@@ -391,6 +567,7 @@ const ReactCodeCompiler: React.FC = () => {
                   <TabsTrigger value="todoList">Todo List</TabsTrigger>
                   <TabsTrigger value="fetchData">Fetch Data</TabsTrigger>
                   <TabsTrigger value="reactEmail">React Email</TabsTrigger>
+                  <TabsTrigger value="loginEmail">Login Email</TabsTrigger>
                 </TabsList>
               </Tabs>
             </div>
@@ -400,6 +577,7 @@ const ReactCodeCompiler: React.FC = () => {
               className="w-full h-[500px] p-4 font-mono text-sm rounded-md border bg-editor-bg text-editor-text focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={code}
               onChange={handleCodeChange}
+              onPaste={handlePaste}
               spellCheck="false"
             />
           </CardContent>
